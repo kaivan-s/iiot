@@ -10,7 +10,6 @@ function App() {
       <Container component="main" maxWidth="sm">
         <MyForm />
       </Container>
-      <h1></h1>
     </React.Fragment>
   );
 }
