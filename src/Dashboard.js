@@ -20,7 +20,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const client = mqtt.connect('wss://w59cd1b1.ala.us-east-1.emqxsl.com:8084/mqtt', {
-      clientId: 'iiot  ',
+      clientId: 'iiot',
       username: 'skaivan',
       password: 'Kai@280199',
     });
