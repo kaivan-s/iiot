@@ -35,9 +35,6 @@ const Dashboard = () => {
     client.on('message', function (topic, message) {
       console.log(message.toString());
     });
-    console.log(process.env)
-    console.log(process.env.ACCESS_KEY_ID)
-    console.log(process.env.SECRET_ACCESS_KEY)
     return () => {
       if (client) {
         client.end();
@@ -48,8 +45,8 @@ const Dashboard = () => {
 
   AWS.config.update({
     region: 'ap-south-1', // Your AWS Region
-    accessKeyId: process.env.ACCESS_KEY_ID, // Your AWS Access Key
-    secretAccessKey: process.env.SECRET_ACCESS_KEY // Your AWS Secret Access Key
+    accessKeyId: process.env.REACT_APP_ACCESS_KEY_ID, // Your AWS Access Key
+    secretAccessKey: process.env.REACT_APP_SECRET_ACCESS_KEY // Your AWS Secret Access Key
   });
   const sns = new AWS.SNS();
   const handleSendEmail = () => {
