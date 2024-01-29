@@ -45,8 +45,8 @@ const Dashboard = () => {
 
   AWS.config.update({
     region: 'ap-south-1', // Your AWS Region
-    accessKeyId: 'AKIA2E3GJG6VBGTX76GP', // Your AWS Access Key
-    secretAccessKey: 'p7AYR4evU0CRZFNYMNeSgLF+ZhYo9O5Hj4DG9IPH' // Your AWS Secret Access Key
+    accessKeyId: process.env.ACCESS_KEY_ID, // Your AWS Access Key
+    secretAccessKey: process.env.SECRET_ACCESS_KEY // Your AWS Secret Access Key
   });
   const sns = new AWS.SNS();
   const handleSendEmail = () => {
