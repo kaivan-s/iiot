@@ -35,6 +35,7 @@ const Dashboard = () => {
     client.on('message', function (topic, message) {
       console.log(message.toString());
     });
+    console.log(process.env)
     console.log(process.env.ACCESS_KEY_ID)
     console.log(process.env.SECRET_ACCESS_KEY)
     return () => {
