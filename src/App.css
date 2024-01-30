@@ -36,3 +36,12 @@
     transform: rotate(360deg);
   }
 }
+
+@keyframes blinking {
+  0%, 100% { background-color: yellow; }
+  50% { background-color: white; }
+}
+
+.blinking {
+  animation: blinking 1s linear infinite;
+}
