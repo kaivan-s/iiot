@@ -77,7 +77,7 @@ const Dashboard = () => {
           )
         );
         logEventToBackend(topic, messageContent);
-        handleSendSMS()
+        handleSendSMS(messageContent)
       }
     });
 
@@ -104,18 +104,19 @@ const Dashboard = () => {
     .catch(error => console.error('Error logging event:', error));
   };
 
-  const handleSendSMS = () => {
+  const handleSendSMS = (messageContent) => {
     axios.get(process.env.REACT_APP_SHEETS_BEST)
       .then(response => {
         const data = response.data;
         if (data.length > 0) {
           const lastRow = data[data.length - 1];
           const mobileNumber = lastRow.mobile;
-          console.log(mobileNumber)
+          console.log(mobileNumber);
           if (mobileNumber) {
+            // Include the messageContent received from MQTT in the body of the SMS
             const messageData = {
               to: '+91' + mobileNumber,
-              body: '[ALERT] MACHINE DOWN'
+              body: `${messageContent}` // Modify this as needed
             };
             axios.post(process.env.REACT_APP_SERVER_ENDPOINT, messageData)
               .then(smsResponse => {
