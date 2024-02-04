@@ -45,3 +45,23 @@
 .blinking {
   animation: blinking 1s linear infinite;
 }
+
+.scrollableTable {
+  max-height: 400px; /* Adjust based on the size of your rows to show only 5 */
+  overflow-y: auto;
+}
+
+.scrollableTableContainer {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.tableRow:hover {
+  background-color: #f5f5f5; /* Optional: for hover effect */
+}
+
+.tableCell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

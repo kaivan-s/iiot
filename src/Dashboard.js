@@ -1,26 +1,52 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import { createTheme, alpha, getContrastRatio, ThemeProvider } from '@mui/material/styles';
+import {
+  Container,
+  Box,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton
+} from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import mqtt from 'mqtt';
-import axios from 'axios'
-import './App.css'
+import axios from 'axios';
+import './App.css';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const Dashboard = () => {
-  const violetBase = '#7851a9';
   const theme = createTheme({
     palette: {
       violet: {
-        main: violetBase,
-        light: alpha(violetBase, 0.5),
-        dark: alpha(violetBase, 0.9),
-        contrastText: getContrastRatio(violetBase, '#fff') > 4.5 ? '#fff' : '#111',
+        main: '#7851a9',
       },
     },
   });
 
-  const [rows, setRows] = useState([
-    { id: 1, time: '10:00', ack: 'ACK', status: 'Active', area: 'Area 1', name: 'Machine 1', description: 'Description 1', value: '100', setpoint: '150', unit: 'kg', style: '' },
+  const [boxes, setBoxes] = useState([
+    { id: 1, blinking: false, acknowledged: false },
+    { id: 2, blinking: false, acknowledged: false },
+    { id: 3, blinking: false, acknowledged: false },
+    { id: 4, blinking: false, acknowledged: false },
   ]);
+  const [logs, setLogs] = useState([]);
+
+  const fetchLogs = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL_GET}`);
+      setLogs(response.data);
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs(); // Call it once initially
+  }, []);
 
   useEffect(() => {
     const client = mqtt.connect('ws://w1900034.emqx.cloud:8083/mqtt', {
@@ -29,65 +55,69 @@ const Dashboard = () => {
       password: process.env.REACT_APP_PASSWORD,
     });
 
-    client.on('connect', function () {
+    client.on('connect', () => {
       console.log('Connected to EMQX Cloud!');
-      client.subscribe('topic/1');
-      client.subscribe('topic/2');
-      client.subscribe('topic/3');
-      client.subscribe('topic/4');
+      client.subscribe('micro800/topic1');
     });
 
-    client.on('message', function (topic, message) {
-      console.log(topic, message.toString());
-      if (topic === 'topic/1') {
-        updateRowStyle(1, 'yellow');
-      } else if (topic === 'topic/2') {
-        updateRowStyle(1, 'blinking');
-      } else if (topic === 'topic/4') {
-        updateRowStyle(1, 'red');
-        handleSendSMS();
+    client.on('message', (topic, message) => {
+      const messageContent = message.toString();
+      let boxIndex = -1;
+      if (messageContent.includes('125-XA-96730')) boxIndex = 0;
+      else if (messageContent.includes('125-XA-96738')) boxIndex = 1;
+      else if (messageContent.includes('VAHH 4051')) boxIndex = 2;
+      else if (messageContent.includes('COMPRESSOR BEARING-1')) boxIndex = 3;
+
+      if (boxIndex !== -1) {
+        setBoxes(currentBoxes =>
+          currentBoxes.map((box, index) =>
+            index === boxIndex
+              ? { ...box, blinking: true, acknowledged: false }
+              : box
+          )
+        );
+        logEventToBackend(topic, messageContent);
+        handleSendSMS()
       }
     });
 
     return () => {
-      if (client) {
-        client.end();
-      }
+      client.end();
     };
-  }, []);
+  }, [boxes]);
 
-  const updateRowStyle = (rowId, style) => {
-    setRows(currentRows =>
-      currentRows.map(row =>
-        row.id === rowId ? { ...row, style: style } : row
+  const handleAck = () => {
+    setBoxes(currentBoxes =>
+      currentBoxes.map(box =>
+        box.blinking ? { ...box, blinking: false, acknowledged: true } : box
       )
     );
   };
 
-  const handleAck = (rowId) => {
-    updateRowStyle(rowId, '');
+  const logEventToBackend = (topic, message) => {
+    axios.post(`${process.env.REACT_APP_BACKEND_URL_POST}`, { 
+      eventType: 'MQTT_MESSAGE',
+      details: topic,
+      message: message
+    })
+    .then(response => console.log('Log event response:', response.data))
+    .catch(error => console.error('Error logging event:', error));
   };
 
   const handleSendSMS = () => {
-    const serverEndpoint = process.env.REACT_APP_SERVER_ENDPOINT;
-
-    console.log(process.env)
-  
     axios.get(process.env.REACT_APP_SHEETS_BEST)
       .then(response => {
         const data = response.data;
-        console.log(data)
         if (data.length > 0) {
           const lastRow = data[data.length - 1];
           const mobileNumber = lastRow.mobile;
-  
+          console.log(mobileNumber)
           if (mobileNumber) {
             const messageData = {
-              to: '+91'+mobileNumber,
+              to: '+91' + mobileNumber,
               body: '[ALERT] MACHINE DOWN'
             };
-  
-            axios.post(serverEndpoint, messageData)
+            axios.post(process.env.REACT_APP_SERVER_ENDPOINT, messageData)
               .then(smsResponse => {
                 console.log('SMS sent:', smsResponse.data);
               })
@@ -110,35 +140,66 @@ const Dashboard = () => {
     <ThemeProvider theme={theme}>
       <Container maxWidth="lg">
         <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Dashboard
-          </Typography>
-          {/* <Button variant="contained" color="violet" onClick={handleSendSMS}>
-            Send SMS
-          </Button> */}
-          <TableContainer component={Paper} sx={{ marginTop: 2,}}>
-            <Table>
-            <TableHead>
-                <TableRow style={{ backgroundColor: '#8f00ff' }}>
-                  {['Time', 'ACK', 'Status', 'Area', 'Name', 'Description', 'Value', 'Setpoint', 'Unit'].map((header) => (
-                    <TableCell key={header} style={{ color: 'white' }}>{header}</TableCell>
+          <Box sx={{ display: 'flex', justifyContent: 'space-around', width: '100%', mb: 2 }}>
+            {boxes.map((box, index) => (
+              <Box
+                key={box.id}
+                sx={{
+                  width: 100,
+                  height: 100,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid #000',
+                  margin: 1,
+                  backgroundColor: box.acknowledged ? 'yellow' : 'transparent',
+                  animation: box.blinking ? 'blinking 1s linear infinite' : 'none',
+                }}
+              >
+                {box.blinking || box.acknowledged ? `Box ${index + 1}` : `Box ${index + 1}`}
+              </Box>
+            ))}
+          </Box>
+          <Button 
+              variant="contained" 
+              color="violet" 
+              onClick={handleAck} 
+              sx={{ 
+                mb: 2, 
+                color: 'white', // Set the font color to white
+                backgroundColor: '#7851a9', // Ensure the background color is violet (or any color you prefer)
+                '&:hover': {
+                  backgroundColor: 'violet', // Optional: Change the background color slightly on hover
+                }
+              }}>
+              ACKNOWLEDGE
+          </Button>
+          <TableContainer component={Paper} className="scrollableTableContainer">
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  {['Time', 'Event Type', 'Details'].map((header) => (
+                    <TableCell key={header} style={{ color: 'white', fontWeight: 'bold', backgroundColor: theme.palette.violet.main }}>
+                      {header}
+                    </TableCell>
                   ))}
+<TableCell style={{ color: 'white', fontWeight: 'bold', backgroundColor: theme.palette.violet.main }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <span>Message</span>
+                      <IconButton onClick={fetchLogs} size="large" sx={{ color: 'white' }}>
+                        <RefreshIcon />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.id} style={getRowStyle(row.style)}>
-                    <TableCell>{row.time}</TableCell>
-                    <TableCell>
-                      <Button variant="contained" color="violet" onClick={() => handleAck(row.id)}>{row.ack}</Button>
-                    </TableCell>
-                    <TableCell>{row.status}</TableCell>
-                    <TableCell>{row.area}</TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.description}</TableCell>
-                    <TableCell>{row.value}</TableCell>
-                    <TableCell>{row.setpoint}</TableCell>
-                    <TableCell>{row.unit}</TableCell>
+                {logs.map((log, index) => (
+                  <TableRow key={index} className="tableRow">
+                    <TableCell className="tableCell">{log.Timestamp}</TableCell>
+                    <TableCell className="tableCell">{log.EventType}</TableCell>
+                    <TableCell className="tableCell">{log.Details}</TableCell>
+                    <TableCell className="tableCell">{log.Message}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -148,19 +209,6 @@ const Dashboard = () => {
       </Container>
     </ThemeProvider>
   );
-};
-
-const getRowStyle = (style) => {
-  switch (style) {
-    case 'yellow':
-      return { backgroundColor: 'yellow' };
-    case 'blinking':
-      return { animation: 'blinking 1s linear infinite' };
-    case 'red':
-      return { backgroundColor: '#FF7F7F' };
-    default:
-      return {};
-  }
 };
 
 export default Dashboard;
