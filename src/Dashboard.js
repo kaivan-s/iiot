@@ -35,6 +35,18 @@ const Dashboard = () => {
   ]);
   const [logs, setLogs] = useState([]);
 
+  const convertoIST = (utcDateString) => {
+    // Create a new Date object using the UTC timestamp from the database
+    const date = new Date(utcDateString);
+    
+    // Convert to IST timezone offset (+5:30)
+    const offset = date.getTime() + (5.5 * 60 * 60 * 1000); // Convert 5 hours and 30 minutes to milliseconds
+    const istDate = new Date(offset);
+    
+    // Format the date and time in a readable format, you can adjust the format as needed
+    return istDate.toLocaleString('en-IN', { timeZone: 'IST' });
+  };
+
   const fetchLogs = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL_GET}`);
@@ -198,7 +210,7 @@ const Dashboard = () => {
               <TableBody>
                 {logs.map((log, index) => (
                   <TableRow key={index} className="tableRow">
-                    <TableCell className="tableCell">{log.Timestamp}</TableCell>
+                    <TableCell className="tableCell">{convertoIST(log.Timestamp)}</TableCell>
                     <TableCell className="tableCell">{log.EventType}</TableCell>
                     <TableCell className="tableCell">{log.Details}</TableCell>
                     <TableCell className="tableCell">{log.Message}</TableCell>
