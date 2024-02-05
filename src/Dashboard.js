@@ -151,13 +151,14 @@ const Dashboard = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1px solid #000',
+                  border: '2px solid #000',
                   margin: 1,
                   backgroundColor: box.acknowledged ? 'yellow' : 'transparent',
                   animation: box.blinking ? 'blinking 1s linear infinite' : 'none',
+                  borderRadius:5
                 }}
               >
-                {box.blinking || box.acknowledged ? `Box ${index + 1}` : `Box ${index + 1}`}
+                {box.blinking || box.acknowledged ? `Mch. Part ${index + 1}` : `Mch. Part ${index + 1}`}
               </Box>
             ))}
           </Box>
@@ -184,7 +185,7 @@ const Dashboard = () => {
                       {header}
                     </TableCell>
                   ))}
-<TableCell style={{ color: 'white', fontWeight: 'bold', backgroundColor: theme.palette.violet.main }}>
+                  <TableCell style={{ color: 'white', fontWeight: 'bold', backgroundColor: theme.palette.violet.main }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                       <span>Message</span>
                       <IconButton onClick={fetchLogs} size="large" sx={{ color: 'white' }}>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, Button, Box, Typography, Container, Alert } from '@mui/material';
 import { createTheme, alpha, getContrastRatio, ThemeProvider } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 const violetBase = '#7851a9';
 
@@ -24,6 +25,7 @@ const MyForm = () => {
   });
 
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,7 +34,12 @@ const MyForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const sheetBestUrl = 'https://sheet.best/api/sheets/4a7ec22a-1314-44b3-86c0-928595c33fc4'; // Replace with your Sheet.Best URL
+    if (!formData.name || !formData.email || !formData.mobile) {
+      alert("All fields are required.");
+      return;
+    }
+
+    const sheetBestUrl = 'https://sheet.best/api/sheets/4a7ec22a-1314-44b3-86c0-928595c33fc4';
 
     try {
       const response = await fetch(sheetBestUrl, {
@@ -40,26 +47,20 @@ const MyForm = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify([formData]), // Sheet.Best expects an array of objects
+        body: JSON.stringify([formData]),
       });
 
       if (response.ok) {
-        console.log('Form submitted successfully');
         setShowSuccessMessage(true);
-        setFormData({
-            name: '',
-            email: '',
-            mobile: '',
-        });
-        // Optionally, reset the success message after a few seconds
-        setTimeout(() => setShowSuccessMessage(false), 3000);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          navigate('/dashboard');
+        }, 3000);
       } else {
         console.error('Error submitting form');
-        // Handle failure (e.g., show error message)
       }
     } catch (error) {
       console.error('Network error:', error);
-      // Handle network error
     }
   };
 
@@ -78,6 +79,7 @@ const MyForm = () => {
               margin="normal"
               value={formData.name}
               onChange={handleChange}
+              required
             />
             <TextField
               name="email"
@@ -86,6 +88,7 @@ const MyForm = () => {
               margin="normal"
               value={formData.email}
               onChange={handleChange}
+              required
             />
             <TextField
               name="mobile"
@@ -94,6 +97,7 @@ const MyForm = () => {
               margin="normal"
               value={formData.mobile}
               onChange={handleChange}
+              required
             />
             {showSuccessMessage && (
               <Alert severity="success" sx={{ mt: 2, mb: 2 }}>
