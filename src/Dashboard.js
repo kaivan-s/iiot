@@ -39,7 +39,6 @@ const Dashboard = () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL_GET}`);
       setLogs(response.data);
-      console.log(logs)
     } catch (error) {
       console.error('Error fetching logs:', error);
     }
