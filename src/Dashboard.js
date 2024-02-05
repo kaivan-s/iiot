@@ -51,6 +51,7 @@ const Dashboard = () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL_GET}`);
       setLogs(response.data);
+      console.log(response)
     } catch (error) {
       console.error('Error fetching logs:', error);
     }
@@ -74,12 +75,14 @@ const Dashboard = () => {
 
     client.on('message', (topic, message) => {
       const messageContent = message.toString();
+      console.log(messageContent)
       let boxIndex = -1;
       if (messageContent.includes('125-XA-96730')) boxIndex = 0;
       else if (messageContent.includes('125-XA-96738')) boxIndex = 1;
-      else if (messageContent.includes('VAHH 4051')) boxIndex = 2;
+      else if (messageContent.includes('VAHH-4051')) boxIndex = 2;
       else if (messageContent.includes('COMPRESSOR BEARING-1')) boxIndex = 3;
 
+      console.log(boxIndex)
       if (boxIndex !== -1) {
         setBoxes(currentBoxes =>
           currentBoxes.map((box, index) =>
@@ -96,7 +99,7 @@ const Dashboard = () => {
     return () => {
       client.end();
     };
-  }, [boxes]);
+  },[]);
 
   const handleAck = () => {
     setBoxes(currentBoxes =>
