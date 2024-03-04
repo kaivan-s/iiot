@@ -62,7 +62,7 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const client = mqtt.connect('ws://w1900034.emqx.cloud:8083/mqtt', {
+    const client = mqtt.connect('ws://e7ee616c.emqx.cloud:8083/mqtt', {
       clientId: process.env.REACT_APP_CLIENT_ID+ "-app",
       username: process.env.REACT_APP_USERNAME,
       password: process.env.REACT_APP_PASSWORD,
