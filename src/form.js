@@ -39,7 +39,7 @@ const MyForm = () => {
       return;
     }
 
-    const sheetBestUrl = 'https://sheet.best/api/sheets/4a7ec22a-1314-44b3-86c0-928595c33fc4';
+    const sheetBestUrl = 'https://sheet.best/api/sheets/64f72e8e-7274-4c35-8808-03e162da0162';
 
     try {
       const response = await fetch(sheetBestUrl, {
